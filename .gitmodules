@@ -1,0 +1,3 @@
+[submodule "deps/litehtml"]
+	path = deps/litehtml
+	url = https://github.com/litehtml/litehtml
