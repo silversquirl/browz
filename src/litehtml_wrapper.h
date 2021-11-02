@@ -1,6 +1,8 @@
+// TODO: write buildtime code to generate this file from litehtml.zig
+
 #pragma once
 
-#include <stdint.h>
+#include <stddef.h>
 #include <stdbool.h>
 
 #ifdef __cplusplus
@@ -16,10 +18,10 @@ struct FontMetrics {
 };
 
 struct WebColor {
-    uint8_t blue;
-    uint8_t green;
-    uint8_t red;
-    uint8_t alpha;
+    unsigned char blue;
+    unsigned char green;
+    unsigned char red;
+    unsigned char alpha;
 };
 
 struct Position {
@@ -39,8 +41,8 @@ struct ListMarker {
 	const char *image;
 	const char *baseurl;
 	int marker_type;
-	WebColor color;
-	Position pos;
+	struct WebColor color;
+	struct Position pos;
 	int index;
 	size_t font;
 };
@@ -62,15 +64,15 @@ struct BorderRadiuses {
 struct Border {
 	int width;
 	int style;
-	WebColor color;
+	struct WebColor color;
 };
 
 struct Borders {
-	Border left;
-	Border top;
-	Border right;
-	Border bottom;
-	BorderRadiuses radius;
+	struct Border left;
+	struct Border top;
+	struct Border right;
+	struct Border bottom;
+	struct BorderRadiuses radius;
 };
 
 struct BackgroundPaint {
@@ -80,12 +82,12 @@ struct BackgroundPaint {
 	const char *baseurl;
 	int attachment;
 	int repeat;
-	WebColor color;
-	Position clip_box;
-	Position origin_box;
-	Position border_box;
-	BorderRadiuses border_radius;
-	Size image_size;
+	struct WebColor color;
+	struct Position clip_box;
+	struct Position origin_box;
+	struct Position border_box;
+	struct BorderRadiuses border_radius;
+	struct Size image_size;
 	int position_x;
 	int position_y;
 	bool is_root;
@@ -93,39 +95,39 @@ struct BackgroundPaint {
 
 struct DocumentContainer {
 	size_t (*createFont)(
-		DocumentContainer *,
+		struct DocumentContainer *,
 		const char *face_name,
 		int size,
 		int weight,
 		bool italic,
-		unsigned int decoration,
-		FontMetrics *metrics
+		unsigned char decoration,
+		struct FontMetrics *metrics
 	);
-	void (*deleteFont)(DocumentContainer *, size_t font_h);
-	int (*textWidth)(DocumentContainer *, const char *text, size_t font_h);
+	void (*deleteFont)(struct DocumentContainer *, size_t font_h);
+	int (*textWidth)(struct DocumentContainer *, const char *text, size_t font_h);
 	void (*drawText)(
-		DocumentContainer *,
+		struct DocumentContainer *,
 		size_t hdc,
 		const char *text,
 		size_t font_h,
-		WebColor color,
-		Position pos
+		struct WebColor color,
+		struct Position pos
 	);
 
-	int (*ptToPx)(DocumentContainer *, int pt);
-	int (*getDefaultFontSize)(DocumentContainer *);
-	const char *(*getDefaultFontName)(DocumentContainer *);
+	int (*ptToPx)(struct DocumentContainer *, int pt);
+	int (*getDefaultFontSize)(struct DocumentContainer *);
+	const char *(*getDefaultFontName)(struct DocumentContainer *);
 
-	void (*loadImage)(DocumentContainer *, const char *src, const char *base_url, bool redraw_on_ready);
-	Size (*getImageSize)(DocumentContainer *, const char *src, const char *baseurl);
+	void (*loadImage)(struct DocumentContainer *, const char *src, const char *base_url, bool redraw_on_ready);
+	struct Size (*getImageSize)(struct DocumentContainer *, const char *src, const char *baseurl);
 
-	void (*drawListMarker)(DocumentContainer *, size_t hdc, const ListMarker *marker);
-	void (*drawBackground)(DocumentContainer *, size_t hdc, const BackgroundPaint *bg);
+	void (*drawListMarker)(struct DocumentContainer *, size_t hdc, const struct ListMarker *marker);
+	void (*drawBackground)(struct DocumentContainer *, size_t hdc, const struct BackgroundPaint *bg);
 	void (*drawBorders)(
-		DocumentContainer *,
+		struct DocumentContainer *,
 		size_t hdc,
-		const Borders *borders,
-		Position draw_pos,
+		const struct Borders *borders,
+		struct Position draw_pos,
 		bool root
 	);
 };
