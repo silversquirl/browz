@@ -9,7 +9,6 @@ pub fn build(b: *std.build.Builder) void {
     litehtml.linkLibC();
     litehtml.linkLibCpp();
 
-    litehtml.defineCMacro("LITEHTML_UTF8", null);
     litehtml.addIncludeDir("deps/litehtml/include");
     litehtml.addIncludeDir("deps/litehtml/include/litehtml");
     litehtml.addIncludeDir("deps/litehtml/src/gumbo/include");
@@ -17,7 +16,6 @@ pub fn build(b: *std.build.Builder) void {
     litehtml.addCSourceFiles(&litehtml_sources, &.{
         "-Wall",
         "-Werror",
-        "-Wno-macro-redefined",
         "-Wno-unused-but-set-variable",
         "-Wno-tautological-constant-out-of-range-compare",
         "-Wno-switch",
@@ -37,13 +35,18 @@ pub fn build(b: *std.build.Builder) void {
     exe.linkLibC();
     exe.linkLibCpp();
     exe.linkLibrary(litehtml);
-    litehtml.defineCMacro("LITEHTML_UTF8", null);
     exe.addIncludeDir("deps/litehtml/include");
     exe.addCSourceFile("src/litehtml_wrapper.cxx", &.{ "-Wall", "-Werror" });
 
     exe.setTarget(target);
     exe.setBuildMode(mode);
     exe.install();
+
+    // Ensure we use UTF8 on windows
+    if (target.getOsTag() == .windows) {
+        litehtml.defineCMacroRaw("LITEHTML_UTF8");
+        exe.defineCMacroRaw("LITEHTML_UTF8");
+    }
 
     // Run browz
     const run_cmd = exe.run();
