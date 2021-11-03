@@ -1,20 +1,30 @@
 const std = @import("std");
 const litehtml = @import("litehtml.zig");
+const HandleStore = @import("handle_store.zig").HandleStore;
 
-dc: litehtml.DocumentContainer = doc_container,
-
-default_font_size: c_int = 14,
-default_font_name: [:0]const u8 = "sans-serif",
-
-const Container = @This();
-
-const doc_container = blk: {
+dc: litehtml.DocumentContainer = blk: {
     var dc: litehtml.DocumentContainer = undefined;
     for (std.meta.fieldNames(litehtml.DocumentContainer)) |name| {
         @field(dc, name) = @field(Container, name);
     }
     break :blk dc;
-};
+},
+
+allocator: *std.mem.Allocator,
+font_store: HandleStore(usize, Font) = .{},
+default_font_size: c_int = 14,
+default_font_name: [:0]const u8 = "sans-serif",
+
+const Font = struct {};
+
+const Container = @This();
+
+pub fn init(allocator: *std.mem.Allocator) Container {
+    return .{ .allocator = allocator };
+}
+pub fn deinit(self: *Container) void {
+    self.font_store.deinit(self.allocator);
+}
 
 fn createFont(
     dc: *litehtml.DocumentContainer,
@@ -25,13 +35,24 @@ fn createFont(
     decoration: litehtml.FontDecoration,
     metrics: *litehtml.FontMetrics,
 ) usize {
-    _ = &.{ dc, face_name, size, weight, italic, decoration, metrics };
-    unreachable;
+    _ = &.{ face_name, size, weight, italic, decoration };
+    const self = @fieldParentPtr(Container, "dc", dc);
+    metrics.* = .{
+        .height = 0,
+        .ascent = 0,
+        .descent = 0,
+        .x_height = 0,
+        .draw_spaces = true,
+    };
+    return self.font_store.add(self.allocator, .{}) catch {
+        @panic("Out of memory");
+    };
 }
 
 fn deleteFont(dc: *litehtml.DocumentContainer, font_handle: usize) void {
-    _ = &.{ dc, font_handle };
-    unreachable;
+    const self = @fieldParentPtr(Container, "dc", dc);
+    const font = self.font_store.del(font_handle);
+    _ = font; // TODO: deinit font
 }
 
 fn textWidth(

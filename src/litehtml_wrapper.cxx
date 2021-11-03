@@ -259,7 +259,8 @@ extern "C" {
 	}
 	void destroyDocument(Document *zig_doc) {
 		document::ptr *doc = (document::ptr *)zig_doc;
-		delete (DocumentContainerWrapper *)(*doc)->container();
+		DocumentContainerWrapper *container = (DocumentContainerWrapper *)(*doc)->container();
 		delete doc;
+		delete container;
 	}
 }
