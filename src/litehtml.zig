@@ -298,8 +298,10 @@ pub const DocumentContainer = struct {
 pub const Context = opaque {
     pub const init = createContext;
     extern fn createContext() *Context;
+
     pub const deinit = destroyContext;
     extern fn destroyContext(*Context) void;
+
     pub extern fn loadMasterStylesheet(*Context, [*:0]const u8) void;
 };
 
@@ -307,6 +309,16 @@ pub const Document = opaque {
     // TODO: user styles
     pub const init = createDocument;
     extern fn createDocument([*:0]const u8, *DocumentContainer, ?*Context) *Document;
+
     pub const deinit = destroyDocument;
     extern fn destroyDocument(*Document) void;
+
+    /// Renders the document, computing all positions etc.
+    /// Does not request any drawing from the document container
+    pub const render = renderDocument;
+    extern fn renderDocument(*Document, max_width: c_int) c_int;
+
+    /// x and y are origin, clip is the visible rectangle
+    pub const draw = drawDocument;
+    extern fn drawDocument(*Document, hdc: usize, x: c_int, y: c_int, clip: Position) void;
 };

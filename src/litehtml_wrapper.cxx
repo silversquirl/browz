@@ -263,4 +263,13 @@ extern "C" {
 		delete doc;
 		delete container;
 	}
+	int renderDocument(Document *zig_doc, int max_width) {
+		document::ptr *doc = (document::ptr *)zig_doc;
+		return (*doc)->render(max_width);
+	}
+	void drawDocument(Document *zig_doc, size_t hdc, int x, int y, Position clip) {
+		document::ptr *doc = (document::ptr *)zig_doc;
+		position c_clip = { clip.x, clip.y, clip.width, clip.height };
+		(*doc)->draw(hdc, x, y, &c_clip);
+	}
 }

@@ -2,12 +2,9 @@
 
 #pragma once
 
-#include <stdbool.h>
-#include <stddef.h>
+#include <cstddef>
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 
 //// Types ////
 
@@ -43,8 +40,8 @@ struct ListMarker {
 	const char *image;
 	const char *baseurl;
 	int marker_type;
-	struct WebColor color;
-	struct Position pos;
+	WebColor color;
+	Position pos;
 	int index;
 	size_t font;
 };
@@ -66,15 +63,15 @@ struct BorderRadiuses {
 struct Border {
 	int width;
 	int style;
-	struct WebColor color;
+	WebColor color;
 };
 
 struct Borders {
-	struct Border left;
-	struct Border top;
-	struct Border right;
-	struct Border bottom;
-	struct BorderRadiuses radius;
+	Border left;
+	Border top;
+	Border right;
+	Border bottom;
+	BorderRadiuses radius;
 };
 
 struct BackgroundPaint {
@@ -84,12 +81,12 @@ struct BackgroundPaint {
 	const char *baseurl;
 	int attachment;
 	int repeat;
-	struct WebColor color;
-	struct Position clip_box;
-	struct Position origin_box;
-	struct Position border_box;
-	struct BorderRadiuses border_radius;
-	struct Size image_size;
+	WebColor color;
+	Position clip_box;
+	Position origin_box;
+	Position border_box;
+	BorderRadiuses border_radius;
+	Size image_size;
 	int position_x;
 	int position_y;
 	bool is_root;
@@ -99,39 +96,39 @@ struct BackgroundPaint {
 
 struct DocumentContainer;
 size_t dcCreateFont(
-	struct DocumentContainer *,
+	DocumentContainer *,
 	const char *face_name,
 	int size,
 	int weight,
 	bool italic,
 	unsigned char decoration,
-	struct FontMetrics *metrics
+	FontMetrics *metrics
 );
-void dcDeleteFont(struct DocumentContainer *, size_t font_h);
-int dcTextWidth(struct DocumentContainer *, const char *text, size_t font_h);
+void dcDeleteFont(DocumentContainer *, size_t font_h);
+int dcTextWidth(DocumentContainer *, const char *text, size_t font_h);
 void dcDrawText(
-	struct DocumentContainer *,
+	DocumentContainer *,
 	size_t hdc,
 	const char *text,
 	size_t font_h,
-	struct WebColor color,
-	struct Position pos
+	WebColor color,
+	Position pos
 );
 
-int dcPtToPx(struct DocumentContainer *, int pt);
-int dcGetDefaultFontSize(struct DocumentContainer *);
-const char *dcGetDefaultFontName(struct DocumentContainer *);
+int dcPtToPx(DocumentContainer *, int pt);
+int dcGetDefaultFontSize(DocumentContainer *);
+const char *dcGetDefaultFontName(DocumentContainer *);
 
-void dcLoadImage(struct DocumentContainer *, const char *src, const char *base_url, bool redraw_on_ready);
-struct Size dcGetImageSize(struct DocumentContainer *, const char *src, const char *baseurl);
+void dcLoadImage(DocumentContainer *, const char *src, const char *base_url, bool redraw_on_ready);
+Size dcGetImageSize(DocumentContainer *, const char *src, const char *baseurl);
 
-void dcDrawListMarker(struct DocumentContainer *, size_t hdc, const struct ListMarker *marker);
-void dcDrawBackground(struct DocumentContainer *, size_t hdc, const struct BackgroundPaint *bg);
+void dcDrawListMarker(DocumentContainer *, size_t hdc, const ListMarker *marker);
+void dcDrawBackground(DocumentContainer *, size_t hdc, const BackgroundPaint *bg);
 void dcDrawBorders(
-	struct DocumentContainer *,
+	DocumentContainer *,
 	size_t hdc,
-	const struct Borders *borders,
-	struct Position draw_pos,
+	const Borders *borders,
+	Position draw_pos,
 	bool root
 );
 
@@ -145,7 +142,7 @@ void loadMasterStylesheet(Context *, const char *);
 struct Document;
 Document *createDocument(const char *, DocumentContainer *, Context *);
 void destroyDocument(Document *);
+int renderDocument(Document *zig_doc, int max_width);
+void drawDocument(Document *zig_doc, size_t hdc, int x, int y, Position clip);
 
-#ifdef __cplusplus
 }
-#endif
