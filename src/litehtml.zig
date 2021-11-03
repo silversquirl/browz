@@ -204,3 +204,11 @@ pub const DocumentContainer = extern struct {
         root: bool,
     ) callconv(.C) void,
 };
+
+const Context = opaque {
+    pub const init = createContext;
+    extern fn createContext() *Context;
+    pub const deinit = destroyContext;
+    extern fn destroyContext(*Context) void;
+    pub extern fn loadMasterStylesheet(*Context, [*:0]const u8) void;
+};

@@ -230,3 +230,15 @@ public:
 private:
 	DocumentContainer *dc;
 };
+
+Context *createContext(void) {
+	return (Context *)new context;
+}
+void destroyContext(Context *zig_ctx) {
+	context *ctx = (context *)zig_ctx;
+	delete ctx;
+}
+void loadMasterStylesheet(Context *zig_ctx, const char *str) {
+	context *ctx = (context *)zig_ctx;
+	ctx->load_master_stylesheet(str);
+}

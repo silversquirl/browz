@@ -132,6 +132,11 @@ struct DocumentContainer {
 	);
 };
 
+struct Context;
+Context *createContext(void);
+void destroyContext(Context *);
+void loadMasterStylesheet(Context *, const char *);
+
 #ifdef __cplusplus
 }
 #endif
