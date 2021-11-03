@@ -9,6 +9,8 @@
 extern "C" {
 #endif
 
+//// Types ////
+
 struct FontMetrics {
     int height;
     int ascent;
@@ -93,44 +95,47 @@ struct BackgroundPaint {
 	bool is_root;
 };
 
-struct DocumentContainer {
-	size_t (*createFont)(
-		struct DocumentContainer *,
-		const char *face_name,
-		int size,
-		int weight,
-		bool italic,
-		unsigned char decoration,
-		struct FontMetrics *metrics
-	);
-	void (*deleteFont)(struct DocumentContainer *, size_t font_h);
-	int (*textWidth)(struct DocumentContainer *, const char *text, size_t font_h);
-	void (*drawText)(
-		struct DocumentContainer *,
-		size_t hdc,
-		const char *text,
-		size_t font_h,
-		struct WebColor color,
-		struct Position pos
-	);
+//// Document Container ////
 
-	int (*ptToPx)(struct DocumentContainer *, int pt);
-	int (*getDefaultFontSize)(struct DocumentContainer *);
-	const char *(*getDefaultFontName)(struct DocumentContainer *);
+struct DocumentContainer;
+size_t dcCreateFont(
+	struct DocumentContainer *,
+	const char *face_name,
+	int size,
+	int weight,
+	bool italic,
+	unsigned char decoration,
+	struct FontMetrics *metrics
+);
+void dcDeleteFont(struct DocumentContainer *, size_t font_h);
+int dcTextWidth(struct DocumentContainer *, const char *text, size_t font_h);
+void dcDrawText(
+	struct DocumentContainer *,
+	size_t hdc,
+	const char *text,
+	size_t font_h,
+	struct WebColor color,
+	struct Position pos
+);
 
-	void (*loadImage)(struct DocumentContainer *, const char *src, const char *base_url, bool redraw_on_ready);
-	struct Size (*getImageSize)(struct DocumentContainer *, const char *src, const char *baseurl);
+int dcPtToPx(struct DocumentContainer *, int pt);
+int dcGetDefaultFontSize(struct DocumentContainer *);
+const char *dcGetDefaultFontName(struct DocumentContainer *);
 
-	void (*drawListMarker)(struct DocumentContainer *, size_t hdc, const struct ListMarker *marker);
-	void (*drawBackground)(struct DocumentContainer *, size_t hdc, const struct BackgroundPaint *bg);
-	void (*drawBorders)(
-		struct DocumentContainer *,
-		size_t hdc,
-		const struct Borders *borders,
-		struct Position draw_pos,
-		bool root
-	);
-};
+void dcLoadImage(struct DocumentContainer *, const char *src, const char *base_url, bool redraw_on_ready);
+struct Size dcGetImageSize(struct DocumentContainer *, const char *src, const char *baseurl);
+
+void dcDrawListMarker(struct DocumentContainer *, size_t hdc, const struct ListMarker *marker);
+void dcDrawBackground(struct DocumentContainer *, size_t hdc, const struct BackgroundPaint *bg);
+void dcDrawBorders(
+	struct DocumentContainer *,
+	size_t hdc,
+	const struct Borders *borders,
+	struct Position draw_pos,
+	bool root
+);
+
+//// Class wrappers ////
 
 struct Context;
 Context *createContext(void);

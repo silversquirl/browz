@@ -4,6 +4,12 @@ pub fn build(b: *std.build.Builder) void {
     const target = b.standardTargetOptions(.{});
     const mode = b.standardReleaseOptions();
 
+    const c_opt = switch (mode) {
+        .Debug => "-O0",
+        .ReleaseSafe, .ReleaseFast => "-O3",
+        .ReleaseSmall => "-Oz",
+    };
+
     // Build litehtml
     const litehtml = b.addStaticLibrary("litehtml", null);
     litehtml.linkLibC();
@@ -14,6 +20,7 @@ pub fn build(b: *std.build.Builder) void {
     litehtml.addIncludeDir("deps/litehtml/src/gumbo/include");
     litehtml.addIncludeDir("deps/litehtml/src/gumbo/include/gumbo");
     litehtml.addCSourceFiles(&litehtml_sources, &.{
+        c_opt,
         "-Wall",
         "-Werror",
         "-Wno-unused-but-set-variable",
@@ -21,11 +28,13 @@ pub fn build(b: *std.build.Builder) void {
         "-Wno-switch",
     });
     litehtml.addCSourceFiles(&gumbo_sources, &.{
+        c_opt,
         "-Wall",
         "-Werror",
         "-Wno-void-pointer-to-enum-cast",
     });
 
+    litehtml.disable_sanitize_c = true; // litehtml does some slightly sketchy stuff
     litehtml.setTarget(target);
     litehtml.setBuildMode(mode);
 
@@ -36,7 +45,7 @@ pub fn build(b: *std.build.Builder) void {
     exe.linkLibCpp();
     exe.linkLibrary(litehtml);
     exe.addIncludeDir("deps/litehtml/include");
-    exe.addCSourceFile("src/litehtml_wrapper.cxx", &.{ "-Wall", "-Werror" });
+    exe.addCSourceFile("src/litehtml_wrapper.cxx", &.{ c_opt, "-Wall", "-Werror" });
 
     exe.setTarget(target);
     exe.setBuildMode(mode);

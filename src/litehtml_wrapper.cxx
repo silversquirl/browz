@@ -21,7 +21,7 @@ public:
 		font_metrics *fm
 	) override {
 		FontMetrics metrics;
-		size_t font = dc->createFont(
+		size_t font = dcCreateFont(
 			dc,
 			faceName,
 			size,
@@ -39,11 +39,11 @@ public:
 	}
 
 	virtual void delete_font(uint_ptr hFont) override {
-		dc->deleteFont(dc, hFont);
+		dcDeleteFont(dc, hFont);
 	}
 
 	virtual int text_width(const tchar_t *text, uint_ptr hFont) override {
-		return dc->textWidth(dc, text, hFont);
+		return dcTextWidth(dc, text, hFont);
 	}
 
 	virtual void draw_text(
@@ -55,17 +55,17 @@ public:
 	) override {
 		WebColor zig_color = { color.blue, color.green, color.red, color.alpha };
 		Position zig_pos = { pos.x, pos.y, pos.width, pos.height };
-		dc->drawText(dc, hdc, text, hFont, zig_color, zig_pos);
+		dcDrawText(dc, hdc, text, hFont, zig_color, zig_pos);
 	}
 
 	virtual int pt_to_px(int pt) override {
-		return dc->ptToPx(dc, pt);
+		return dcPtToPx(dc, pt);
 	}
 	virtual int get_default_font_size() const override {
-		return dc->getDefaultFontSize(dc);
+		return dcGetDefaultFontSize(dc);
 	}
 	virtual const tchar_t *get_default_font_name() const override {
-		return dc->getDefaultFontName(dc);
+		return dcGetDefaultFontName(dc);
 	}
 
 	virtual void draw_list_marker(uint_ptr hdc, const list_marker &marker) override {
@@ -89,14 +89,14 @@ public:
 			.index = marker.index,
 			.font = marker.font,
 		};
-		return dc->drawListMarker(dc, hdc, &zig_marker);
+		return dcDrawListMarker(dc, hdc, &zig_marker);
 	}
 
 	virtual void load_image(const tchar_t *src, const tchar_t *baseurl, bool redraw_on_ready) override {
-		dc->loadImage(dc, src, baseurl, redraw_on_ready);
+		dcLoadImage(dc, src, baseurl, redraw_on_ready);
 	}
 	virtual void get_image_size(const tchar_t *src, const tchar_t *baseurl, size &sz) override {
-		Size zig_sz = dc->getImageSize(dc, src, baseurl);
+		Size zig_sz = dcGetImageSize(dc, src, baseurl);
 		sz.width = zig_sz.width;
 		sz.height = zig_sz.height;
 	}
@@ -150,7 +150,7 @@ public:
 			.position_y = bg.position_y,
 			.is_root = bg.is_root,
 		};
-		dc->drawBackground(dc, hdc, &zig_bg);
+		dcDrawBackground(dc, hdc, &zig_bg);
 	}
 	virtual void draw_borders(uint_ptr hdc, const borders &borders, const position &draw_pos, bool root) override {
 		Borders zig_borders = {
@@ -205,7 +205,7 @@ public:
 				.bottom_left_y = borders.radius.bottom_left_y,
 			},
 		};
-		dc->drawBorders(dc, hdc, &zig_borders, {
+		dcDrawBorders(dc, hdc, &zig_borders, {
 			draw_pos.x,
 			draw_pos.y,
 			draw_pos.width,

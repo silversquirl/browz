@@ -1,9 +1,11 @@
 const std = @import("std");
 const litehtml = @import("litehtml.zig");
-comptime {
-    _ = litehtml;
-}
+const Container = @import("Container.zig");
 
 pub fn main() !void {
-    std.log.info("All your codebase are belong to us.", .{});
+    const ctx = litehtml.Context.init();
+    ctx.loadMasterStylesheet(@embedFile("master.css"));
+    var container = Container{};
+    const doc = litehtml.Document.init("<h1>Hello</h1>", &container.dc, ctx);
+    defer doc.deinit();
 }
