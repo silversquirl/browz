@@ -137,6 +137,10 @@ Context *createContext(void);
 void destroyContext(Context *);
 void loadMasterStylesheet(Context *, const char *);
 
+struct Document;
+Document *createDocument(const char *, DocumentContainer *, Context *);
+void destroyDocument(Document *);
+
 #ifdef __cplusplus
 }
 #endif

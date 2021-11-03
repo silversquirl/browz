@@ -212,3 +212,11 @@ const Context = opaque {
     extern fn destroyContext(*Context) void;
     pub extern fn loadMasterStylesheet(*Context, [*:0]const u8) void;
 };
+
+const Document = opaque {
+    // TODO: user styles
+    pub const init = createDocument;
+    extern fn createDocument([*:0]const u8, *DocumentContainer, *Context) *Document;
+    pub const deinit = destroyDocument;
+    extern fn destroyDocument(*Document) void;
+};

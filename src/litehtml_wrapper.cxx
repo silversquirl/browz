@@ -7,8 +7,11 @@
 
 using namespace litehtml;
 
-class DocumentContainerWrapper : document_container {
+class DocumentContainerWrapper final : public document_container {
 public:
+	DocumentContainerWrapper(DocumentContainer *dc) : dc(dc) {};
+	~DocumentContainerWrapper() {};
+
 	virtual uint_ptr create_font(
 		const tchar_t *faceName,
 		int size,
@@ -210,35 +213,53 @@ public:
 		}, root);
 	}
 
-	virtual void set_caption(const tchar_t *caption) override = 0;
-	virtual void set_base_url(const tchar_t *base_url) override = 0;
-	virtual void link(const std::shared_ptr<document> &doc, const element::ptr &el) override = 0;
-	virtual void on_anchor_click(const tchar_t *url, const element::ptr &el) override = 0;
-	virtual void set_cursor(const tchar_t *cursor) override = 0;
-	virtual void transform_text(tstring &text, text_transform tt) override = 0;
-	virtual void import_css(tstring &text, const tstring &url, tstring &baseurl) override = 0;
-	virtual void set_clip(const position &pos, const border_radiuses &bdr_radius, bool valid_x, bool valid_y) override = 0;
-	virtual void del_clip() override = 0;
-	virtual void get_client_rect(position &client) const override = 0;
-	virtual std::shared_ptr<element> create_element(const tchar_t *tag_name, const string_map &attributes, const std::shared_ptr<document> &doc) override = 0;
+	virtual void set_caption(const tchar_t *caption) override {}
+	virtual void set_base_url(const tchar_t *base_url) override {}
+	virtual void link(const std::shared_ptr<document> &doc, const element::ptr &el) override {}
+	virtual void on_anchor_click(const tchar_t *url, const element::ptr &el) override {}
+	virtual void set_cursor(const tchar_t *cursor) override {}
+	virtual void transform_text(tstring &text, text_transform tt) override {}
+	virtual void import_css(tstring &text, const tstring &url, tstring &baseurl) override {}
+	virtual void set_clip(const position &pos, const border_radiuses &bdr_radius, bool valid_x, bool valid_y) override {}
+	virtual void del_clip() override {}
+	virtual void get_client_rect(position &client) const override {}
+	virtual std::shared_ptr<element> create_element(const tchar_t *tag_name, const string_map &attributes, const std::shared_ptr<document> &doc) override {
+		return nullptr;
+	}
 
-	virtual void get_media_features(media_features &media) const override = 0;
-	virtual void get_language(tstring &language, tstring &culture) const override = 0;
+	virtual void get_media_features(media_features &media) const override {}
+	virtual void get_language(tstring &language, tstring &culture) const override {}
 	virtual tstring resolve_color(const tstring &color_str) const override { return tstring(); }
-	virtual void split_text(const char *text, std::function<void(const tchar_t *)> on_word, std::function<void(const tchar_t *)> on_space) override;
+	virtual void split_text(const char *text, std::function<void(const tchar_t *)> on_word, std::function<void(const tchar_t *)> on_space) override {}
 
 private:
 	DocumentContainer *dc;
 };
 
-Context *createContext(void) {
-	return (Context *)new context;
-}
-void destroyContext(Context *zig_ctx) {
-	context *ctx = (context *)zig_ctx;
-	delete ctx;
-}
-void loadMasterStylesheet(Context *zig_ctx, const char *str) {
-	context *ctx = (context *)zig_ctx;
-	ctx->load_master_stylesheet(str);
+extern "C" {
+	Context *createContext(void) {
+		return (Context *)new context; // TODO: handle exception
+	}
+	void destroyContext(Context *zig_ctx) {
+		delete (context *)zig_ctx;
+	}
+	void loadMasterStylesheet(Context *zig_ctx, const char *str) {
+		context *ctx = (context *)zig_ctx;
+		ctx->load_master_stylesheet(str);
+	}
+
+	Document *createDocument(const char *str, DocumentContainer *container, Context *ctx) {
+		document::ptr *doc = new document::ptr;
+		*doc = document::createFromUTF8(
+			str,
+			new DocumentContainerWrapper(container),
+			(context *)ctx
+		);
+		return (Document *)doc;
+	}
+	void destroyDocument(Document *zig_doc) {
+		document::ptr *doc = (document::ptr *)zig_doc;
+		delete (DocumentContainerWrapper *)(*doc)->container();
+		delete doc;
+	}
 }
