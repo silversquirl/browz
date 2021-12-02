@@ -26,6 +26,26 @@ pub const FontDecoration = packed struct {
         std.debug.assert(@bitCast(u8, FontDecoration{ .linethrough = true }) == 0x02);
         std.debug.assert(@bitCast(u8, FontDecoration{ .overline = true }) == 0x04);
     }
+
+    pub fn format(self: FontDecoration, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
+        _ = fmt;
+        _ = options;
+        var sep = false;
+        if (self.underline) {
+            try writer.writeAll("underline");
+            sep = true;
+        }
+        if (self.linethrough) {
+            if (sep) try writer.writeByte(',');
+            try writer.writeAll("linethrough");
+            sep = true;
+        }
+        if (self.overline) {
+            if (sep) try writer.writeByte(',');
+            try writer.writeAll("overline");
+            sep = true;
+        }
+    }
 };
 
 pub const WebColor = extern struct {
@@ -316,7 +336,8 @@ pub const Document = opaque {
     extern fn destroyDocument(*Document) void;
 
     /// Renders the document, computing all positions etc.
-    /// Does not request any drawing from the document container
+    /// Does not request any drawing from the document container.
+    /// Returns document width (I think?)
     pub const render = renderDocument;
     extern fn renderDocument(*Document, max_width: c_int) c_int;
 

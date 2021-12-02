@@ -16,6 +16,19 @@ pub fn main() !void {
     var container = Container.init(allocator);
     defer container.deinit();
 
-    const doc = litehtml.Document.init("<h1>Hello</h1>", &container.dc, ctx);
+    const doc = litehtml.Document.init(
+        \\<!DOCTYPE html>
+        \\<body>
+        \\  <h1>Hello</h1>
+        \\</body>
+    , &container.dc, ctx);
     defer doc.deinit();
+
+    _ = doc.render(1024);
+    doc.draw(undefined, 0, 0, .{
+        .x = 0,
+        .y = 0,
+        .width = 1024,
+        .height = 1024,
+    });
 }

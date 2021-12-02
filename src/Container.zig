@@ -4,6 +4,8 @@ const std = @import("std");
 const litehtml = @import("litehtml.zig");
 const HandleStore = @import("handle_store.zig").HandleStore;
 
+const log = std.log.scoped(.container);
+
 dc: litehtml.DocumentContainer = blk: {
     var dc: litehtml.DocumentContainer = undefined;
     for (std.meta.fieldNames(litehtml.DocumentContainer)) |name| {
@@ -37,7 +39,6 @@ fn createFont(
     decoration: litehtml.FontDecoration,
     metrics: *litehtml.FontMetrics,
 ) usize {
-    _ = &.{ face_name, size, weight, italic, decoration };
     const self = @fieldParentPtr(Container, "dc", dc);
     metrics.* = .{
         .height = 0,
@@ -46,15 +47,20 @@ fn createFont(
         .x_height = 0,
         .draw_spaces = true,
     };
-    return self.font_store.add(self.allocator, .{}) catch {
+    const handle = self.font_store.add(self.allocator, .{}) catch {
         @panic("Out of memory");
     };
+    log.debug("Loaded font {}: name='{'}', size={}, weight={}, italic={}, decoration=[{}]", .{
+        handle, std.zig.fmtEscapes(face_name), size, weight, italic, decoration,
+    });
+    return handle;
 }
 
 fn deleteFont(dc: *litehtml.DocumentContainer, font_handle: usize) void {
     const self = @fieldParentPtr(Container, "dc", dc);
     const font = self.font_store.del(font_handle);
     _ = font; // TODO: deinit font
+    log.debug("Deleted font {}", .{font_handle});
 }
 
 fn textWidth(
@@ -135,6 +141,9 @@ fn drawBorders(
     draw_pos: litehtml.Position,
     root: bool,
 ) void {
+    log.debug("Draw borders: {} {} root={}", .{
+        borders, draw_pos, root,
+    });
     _ = &.{ dc, hdc, borders, draw_pos, root };
-    unreachable;
+    // unreachable;
 }
