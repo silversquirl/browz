@@ -1,3 +1,5 @@
+//! This file contains browz's implementation of the litehtml DocumentContainer interface
+
 const std = @import("std");
 const litehtml = @import("litehtml.zig");
 const HandleStore = @import("handle_store.zig").HandleStore;

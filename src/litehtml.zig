@@ -1,3 +1,5 @@
+//! This file wraps litehtml types for use from zig
+
 const std = @import("std");
 const c = @cImport({
     @cInclude("litehtml_wrapper.h");

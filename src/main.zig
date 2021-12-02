@@ -1,3 +1,5 @@
+//! Main program entry point
+
 const std = @import("std");
 const litehtml = @import("litehtml.zig");
 const Container = @import("Container.zig");

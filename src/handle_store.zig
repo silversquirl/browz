@@ -1,3 +1,6 @@
+//! This file contains a type for allocating and storing "handles" to objects.
+//! Effectively an allocator for fixed-size objects that uses a customizable address size.
+
 const std = @import("std");
 
 pub fn HandleStore(comptime Handle: type, comptime Value: type) type {
