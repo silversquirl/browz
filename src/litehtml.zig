@@ -260,10 +260,10 @@ pub const DocumentContainer = struct {
         hdc: usize,
         text: [*:0]const u8,
         font_handle: usize,
-        color: WebColor,
-        pos: Position,
+        color: *const WebColor,
+        pos: *const Position,
     ) void {
-        dc.drawText(dc, hdc, std.mem.span(text), font_handle, color, pos);
+        dc.drawText(dc, hdc, std.mem.span(text), font_handle, color.*, pos.*);
     }
 
     export fn dcPtToPx(dc: *DocumentContainer, pt: c_int) c_int {
@@ -310,10 +310,10 @@ pub const DocumentContainer = struct {
         dc: *DocumentContainer,
         hdc: usize,
         borders: *const Borders,
-        draw_pos: Position,
+        draw_pos: *const Position,
         root: bool,
     ) void {
-        dc.drawBorders(dc, hdc, borders, draw_pos, root);
+        dc.drawBorders(dc, hdc, borders, draw_pos.*, root);
     }
 };
 
@@ -344,4 +344,12 @@ pub const Document = opaque {
     /// x and y are origin, clip is the visible rectangle
     pub const draw = drawDocument;
     extern fn drawDocument(*Document, hdc: usize, x: c_int, y: c_int, clip: Position) void;
+
+    pub const mediaChanged = mediaChangedDocument;
+    extern fn mediaChangedDocument(*Document) bool;
+
+    pub const width = widthDocument;
+    extern fn widthDocument(*Document) c_int;
+    pub const height = heightDocument;
+    extern fn heightDocument(*Document) c_int;
 };

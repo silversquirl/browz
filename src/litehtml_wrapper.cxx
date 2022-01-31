@@ -55,7 +55,7 @@ public:
 	) override {
 		WebColor zig_color = { color.blue, color.green, color.red, color.alpha };
 		Position zig_pos = { pos.x, pos.y, pos.width, pos.height };
-		dcDrawText(dc, hdc, text, hFont, zig_color, zig_pos);
+		dcDrawText(dc, hdc, text, hFont, &zig_color, &zig_pos);
 	}
 
 	virtual int pt_to_px(int pt) override {
@@ -205,12 +205,13 @@ public:
 				.bottom_left_y = borders.radius.bottom_left_y,
 			},
 		};
-		dcDrawBorders(dc, hdc, &zig_borders, {
+		Position zig_pos = {
 			draw_pos.x,
 			draw_pos.y,
 			draw_pos.width,
 			draw_pos.height,
-		}, root);
+		};
+		dcDrawBorders(dc, hdc, &zig_borders, &zig_pos, root);
 	}
 
 	virtual void set_caption(const tchar_t *caption) override {}
@@ -229,8 +230,8 @@ public:
 
 	virtual void get_media_features(media_features &media) const override {}
 	virtual void get_language(tstring &language, tstring &culture) const override {}
-	virtual tstring resolve_color(const tstring &color_str) const override { return tstring(); }
-	virtual void split_text(const char *text, std::function<void(const tchar_t *)> on_word, std::function<void(const tchar_t *)> on_space) override {}
+	// virtual tstring resolve_color(const tstring &color_str) const override { return tstring(); }
+	// virtual void split_text(const char *text, std::function<void(const tchar_t *)> on_word, std::function<void(const tchar_t *)> on_space) override {}
 
 private:
 	DocumentContainer *dc;
@@ -271,5 +272,17 @@ extern "C" {
 		document::ptr *doc = (document::ptr *)zig_doc;
 		position c_clip = { clip.x, clip.y, clip.width, clip.height };
 		(*doc)->draw(hdc, x, y, &c_clip);
+	}
+	bool mediaChangedDocument(Document *zig_doc) {
+		document::ptr *doc = (document::ptr *)zig_doc;
+		return (*doc)->media_changed();
+	}
+	int widthDocument(Document *zig_doc) {
+		document::ptr *doc = (document::ptr *)zig_doc;
+		return (*doc)->width();
+	}
+	int heightDocument(Document *zig_doc) {
+		document::ptr *doc = (document::ptr *)zig_doc;
+		return (*doc)->height();
 	}
 }

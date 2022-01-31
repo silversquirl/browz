@@ -14,18 +14,18 @@ pub fn HandleStore(comptime Handle: type, comptime Value: type) type {
         };
         const Self = @This();
 
-        pub fn deinit(self: *Self, allocator: *std.mem.Allocator) void {
+        pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
             self.entries.deinit(allocator);
         }
 
-        pub fn get(self: Self, h: Handle) Value {
-            return self.entries[h].v;
+        pub inline fn get(self: Self, h: Handle) Value {
+            return self.entries.items[h].v;
         }
-        pub fn getPtr(self: Self, h: Handle) *Value {
-            return &self.entries[h].v;
+        pub inline fn getPtr(self: Self, h: Handle) *Value {
+            return &self.entries.items[h].v;
         }
 
-        pub fn add(self: *Self, allocator: *std.mem.Allocator, v: Value) !Handle {
+        pub fn add(self: *Self, allocator: std.mem.Allocator, v: Value) !Handle {
             const h = if (self.free) |h| blk: {
                 self.free = self.entries.items[h].free;
                 break :blk h;
@@ -39,7 +39,7 @@ pub fn HandleStore(comptime Handle: type, comptime Value: type) type {
         }
 
         pub fn del(self: *Self, h: Handle) Value {
-            const v = self.entries.items[h].v;
+            const v = self.get(h);
             self.entries.items[h] = .{ .free = self.free };
             self.free = h;
             return v;

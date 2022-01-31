@@ -44,6 +44,8 @@ pub fn build(b: *std.build.Builder) void {
     exe.linkLibC();
     exe.linkLibCpp();
     exe.linkLibrary(litehtml);
+    exe.linkSystemLibrary("sdl2");
+    exe.linkSystemLibrary("SDL2_ttf");
     exe.addIncludeDir("deps/litehtml/include");
     exe.addCSourceFile("src/litehtml_wrapper.cxx", &.{ c_opt, "-Wall", "-Werror" });
 

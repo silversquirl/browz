@@ -1,6 +1,7 @@
 //! This file contains browz's implementation of the litehtml DocumentContainer interface
 
 const std = @import("std");
+const c = @import("c.zig");
 const litehtml = @import("litehtml.zig");
 const HandleStore = @import("handle_store.zig").HandleStore;
 
@@ -14,17 +15,23 @@ dc: litehtml.DocumentContainer = blk: {
     break :blk dc;
 },
 
-allocator: *std.mem.Allocator,
+allocator: std.mem.Allocator,
+ren: *c.SDL_Renderer,
 font_store: HandleStore(usize, Font) = .{},
 default_font_size: c_int = 14,
 default_font_name: [:0]const u8 = "sans-serif",
 
-const Font = struct {};
+const Font = *c.TTF_Font;
 
 const Container = @This();
 
-pub fn init(allocator: *std.mem.Allocator) Container {
-    return .{ .allocator = allocator };
+pub fn init(allocator: std.mem.Allocator, win: *c.SDL_Window) Container {
+    return .{
+        .allocator = allocator,
+        .ren = c.SDL_CreateRenderer(win, -1, 0) orelse {
+            @panic(std.mem.span(c.SDL_GetError()));
+        },
+    };
 }
 pub fn deinit(self: *Container) void {
     self.font_store.deinit(self.allocator);
@@ -40,6 +47,27 @@ fn createFont(
     metrics: *litehtml.FontMetrics,
 ) usize {
     const self = @fieldParentPtr(Container, "dc", dc);
+
+    const font = c.TTF_OpenFont("/usr/share/fonts/TTF/FreeSans.ttf", size) orelse {
+        std.debug.panic("Failed to load font: {s}", .{std.mem.span(c.TTF_GetError())});
+    };
+    var style: c_int = 0;
+    if (weight >= 700) {
+        style |= c.TTF_STYLE_BOLD;
+    }
+    if (italic) {
+        style |= c.TTF_STYLE_ITALIC;
+    }
+    if (decoration.underline) {
+        style |= c.TTF_STYLE_UNDERLINE;
+    }
+    if (decoration.linethrough) {
+        style |= c.TTF_STYLE_STRIKETHROUGH;
+    }
+    if (style != 0) {
+        c.TTF_SetFontStyle(font, style);
+    }
+
     metrics.* = .{
         .height = 0,
         .ascent = 0,
@@ -47,11 +75,16 @@ fn createFont(
         .x_height = 0,
         .draw_spaces = true,
     };
-    const handle = self.font_store.add(self.allocator, .{}) catch {
+    metrics.ascent = c.TTF_FontAscent(font);
+    metrics.descent = c.TTF_FontDescent(font);
+    metrics.height = c.TTF_FontLineSkip(font);
+    metrics.x_height = c.TTF_FontHeight(font);
+
+    const handle = self.font_store.add(self.allocator, font) catch {
         @panic("Out of memory");
     };
-    log.debug("Loaded font {}: name='{'}', size={}, weight={}, italic={}, decoration=[{}]", .{
-        handle, std.zig.fmtEscapes(face_name), size, weight, italic, decoration,
+    log.debug("Loaded font : name='{'}', size={}, weight={}, italic={}, decoration=[{}]", .{
+        std.zig.fmtEscapes(face_name), size, weight, italic, decoration,
     });
     return handle;
 }
@@ -59,7 +92,7 @@ fn createFont(
 fn deleteFont(dc: *litehtml.DocumentContainer, font_handle: usize) void {
     const self = @fieldParentPtr(Container, "dc", dc);
     const font = self.font_store.del(font_handle);
-    _ = font; // TODO: deinit font
+    c.TTF_CloseFont(font);
     log.debug("Deleted font {}", .{font_handle});
 }
 
@@ -68,25 +101,51 @@ fn textWidth(
     text: [:0]const u8,
     font_handle: usize,
 ) c_int {
-    _ = &.{ dc, text, font_handle };
-    unreachable;
+    const self = @fieldParentPtr(Container, "dc", dc);
+    const font = self.font_store.get(font_handle);
+
+    var w: c_int = undefined;
+    if (c.TTF_SizeUTF8(font, text.ptr, &w, null) != 0) {
+        std.debug.panic("Could not render text: {s}", .{std.mem.span(c.TTF_GetError())});
+    }
+    log.debug("text width for '{'}': {}", .{
+        std.zig.fmtEscapes(text), w,
+    });
+    return w;
 }
 
 fn drawText(
     dc: *litehtml.DocumentContainer,
-    hdc: usize,
+    _: usize,
     text: [:0]const u8,
     font_handle: usize,
     color: litehtml.WebColor,
     pos: litehtml.Position,
 ) void {
-    _ = &.{ dc, hdc, text, font_handle, color, pos };
-    unreachable;
+    const self = @fieldParentPtr(Container, "dc", dc);
+    const font = self.font_store.get(font_handle);
+
+    const surf = c.TTF_RenderUTF8_Blended(font, text.ptr, .{
+        .r = color.red,
+        .g = color.green,
+        .b = color.blue,
+        .a = color.alpha,
+    });
+    const tex = c.SDL_CreateTextureFromSurface(self.ren, surf);
+
+    _ = c.SDL_RenderCopy(self.ren, tex, null, &.{
+        .x = pos.x,
+        .y = pos.y,
+        .w = pos.width,
+        .h = pos.height,
+    });
+    log.debug("text: '{'}' @ {} {}", .{ std.zig.fmtEscapes(text), pos.x, pos.y });
 }
 
 fn ptToPx(dc: *litehtml.DocumentContainer, pt: c_int) c_int {
-    _ = &.{ dc, pt };
-    unreachable;
+    // TODO
+    _ = dc;
+    return @divTrunc(pt * 96, 72);
 }
 fn getDefaultFontSize(dc: *litehtml.DocumentContainer) c_int {
     const self = @fieldParentPtr(Container, "dc", dc);
@@ -127,11 +186,22 @@ fn drawListMarker(
 
 fn drawBackground(
     dc: *litehtml.DocumentContainer,
-    hdc: usize,
+    _: usize,
     bg: *const litehtml.BackgroundPaint,
 ) void {
-    _ = &.{ dc, hdc, bg };
-    unreachable;
+    const self = @fieldParentPtr(Container, "dc", dc);
+    _ = c.SDL_SetRenderDrawColor(self.ren, bg.color.red, bg.color.green, bg.color.blue, bg.color.alpha);
+    if (bg.is_root) {
+        _ = c.SDL_RenderClear(self.ren);
+    } else {
+        _ = c.SDL_RenderFillRect(self.ren, &.{
+            .x = bg.clip_box.x,
+            .y = bg.clip_box.y,
+            .w = bg.clip_box.width,
+            .h = bg.clip_box.height,
+        });
+    }
+    log.debug("bg: {} {} {}", .{ bg.color, bg.clip_box, bg.is_root });
 }
 
 fn drawBorders(
@@ -141,9 +211,6 @@ fn drawBorders(
     draw_pos: litehtml.Position,
     root: bool,
 ) void {
-    log.debug("Draw borders: {} {} root={}", .{
-        borders, draw_pos, root,
-    });
     _ = &.{ dc, hdc, borders, draw_pos, root };
     // unreachable;
 }

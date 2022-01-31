@@ -111,8 +111,8 @@ void dcDrawText(
 	size_t hdc,
 	const char *text,
 	size_t font_h,
-	WebColor color,
-	Position pos
+	const WebColor *color,
+	const Position *pos
 );
 
 int dcPtToPx(DocumentContainer *, int pt);
@@ -128,7 +128,7 @@ void dcDrawBorders(
 	DocumentContainer *,
 	size_t hdc,
 	const Borders *borders,
-	Position draw_pos,
+	const Position *draw_pos,
 	bool root
 );
 
@@ -144,5 +144,8 @@ Document *createDocument(const char *, DocumentContainer *, Context *);
 void destroyDocument(Document *);
 int renderDocument(Document *zig_doc, int max_width);
 void drawDocument(Document *zig_doc, size_t hdc, int x, int y, Position clip);
+bool mediaChangedDocument(Document *zig_doc);
+int widthDocument(Document *zig_doc);
+int heightDocument(Document *zig_doc);
 
 }
