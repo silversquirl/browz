@@ -167,6 +167,32 @@ pub const BackgroundRepeat = enum(c_int) {
     no_repeat,
 };
 
+pub const MediaType = enum(c_int) {
+    none,
+    all,
+    screen,
+    print,
+    braille,
+    embossed,
+    handheld,
+    projection,
+    speech,
+    tty,
+    tv,
+};
+
+pub const MediaFeatures = struct {
+    type: MediaType,
+    width: c_int,
+    height: c_int,
+    device_width: c_int,
+    device_height: c_int,
+    color: c_int,
+    color_index: c_int = 0,
+    monochrome: c_int = 0,
+    resolution: c_int = 0,
+};
+
 pub const DocumentContainer = struct {
     createFont: fn (
         *DocumentContainer,
@@ -225,6 +251,8 @@ pub const DocumentContainer = struct {
         draw_pos: Position,
         root: bool,
     ) void,
+
+    getMediaFeatures: fn (*DocumentContainer) MediaFeatures,
 
     export fn dcCreateFont(
         dc: *DocumentContainer,
@@ -314,6 +342,10 @@ pub const DocumentContainer = struct {
         root: bool,
     ) void {
         dc.drawBorders(dc, hdc, borders, draw_pos.*, root);
+    }
+
+    export fn dcGetMediaFeatures(dc: *DocumentContainer, media: *MediaFeatures) void {
+        media.* = dc.getMediaFeatures(dc);
     }
 };
 

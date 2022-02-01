@@ -114,6 +114,7 @@ const litehtml_sources = [_][]const u8{
     "deps/litehtml/src/utf8_strings.cpp",
     "deps/litehtml/src/web_color.cpp",
     "deps/litehtml/src/num_cvt.cpp",
+    "deps/litehtml/src/strtod.cpp",
 };
 
 // List taken from deps/litehtml/src/gumbo/CMakeLists.txt

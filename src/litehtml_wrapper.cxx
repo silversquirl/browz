@@ -58,7 +58,7 @@ public:
 		dcDrawText(dc, hdc, text, hFont, &zig_color, &zig_pos);
 	}
 
-	virtual int pt_to_px(int pt) override {
+	virtual int pt_to_px(int pt) const override {
 		return dcPtToPx(dc, pt);
 	}
 	virtual int get_default_font_size() const override {
@@ -228,7 +228,19 @@ public:
 		return nullptr;
 	}
 
-	virtual void get_media_features(media_features &media) const override {}
+	virtual void get_media_features(media_features &media) const override {
+		MediaFeatures zig_media;
+		dcGetMediaFeatures(dc, &zig_media);
+		media.type = (media_type)zig_media.type;
+		media.width = zig_media.width;
+		media.height = zig_media.height;
+		media.device_width = zig_media.device_width;
+		media.device_height = zig_media.device_height;
+		media.color = zig_media.color;
+		media.color_index = zig_media.color_index;
+		media.monochrome = zig_media.monochrome;
+		media.resolution = zig_media.resolution;
+	}
 	virtual void get_language(tstring &language, tstring &culture) const override {}
 	// virtual tstring resolve_color(const tstring &color_str) const override { return tstring(); }
 	// virtual void split_text(const char *text, std::function<void(const tchar_t *)> on_word, std::function<void(const tchar_t *)> on_space) override {}

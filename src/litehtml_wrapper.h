@@ -92,6 +92,18 @@ struct BackgroundPaint {
 	bool is_root;
 };
 
+struct MediaFeatures {
+	int type;
+	int width;
+	int height;
+	int device_width;
+	int device_height;
+	int color;
+	int color_index;
+	int monochrome;
+	int resolution;
+};
+
 //// Document Container ////
 
 struct DocumentContainer;
@@ -131,6 +143,8 @@ void dcDrawBorders(
 	const Position *draw_pos,
 	bool root
 );
+
+void dcGetMediaFeatures(DocumentContainer *, MediaFeatures *media);
 
 //// Class wrappers ////
 

@@ -16,6 +16,7 @@ dc: litehtml.DocumentContainer = blk: {
 },
 
 allocator: std.mem.Allocator,
+win: *c.SDL_Window,
 ren: *c.SDL_Renderer,
 font_store: HandleStore(usize, Font) = .{},
 default_font_size: c_int = 14,
@@ -28,6 +29,7 @@ const Container = @This();
 pub fn init(allocator: std.mem.Allocator, win: *c.SDL_Window) Container {
     return .{
         .allocator = allocator,
+        .win = win,
         .ren = c.SDL_CreateRenderer(win, -1, 0) orelse {
             @panic(std.mem.span(c.SDL_GetError()));
         },
@@ -108,9 +110,6 @@ fn textWidth(
     if (c.TTF_SizeUTF8(font, text.ptr, &w, null) != 0) {
         std.debug.panic("Could not render text: {s}", .{std.mem.span(c.TTF_GetError())});
     }
-    log.debug("text width for '{'}': {}", .{
-        std.zig.fmtEscapes(text), w,
-    });
     return w;
 }
 
@@ -139,7 +138,6 @@ fn drawText(
         .w = pos.width,
         .h = pos.height,
     });
-    log.debug("text: '{'}' @ {} {}", .{ std.zig.fmtEscapes(text), pos.x, pos.y });
 }
 
 fn ptToPx(dc: *litehtml.DocumentContainer, pt: c_int) c_int {
@@ -201,7 +199,6 @@ fn drawBackground(
             .h = bg.clip_box.height,
         });
     }
-    log.debug("bg: {} {} {}", .{ bg.color, bg.clip_box, bg.is_root });
 }
 
 fn drawBorders(
@@ -213,4 +210,25 @@ fn drawBorders(
 ) void {
     _ = &.{ dc, hdc, borders, draw_pos, root };
     // unreachable;
+}
+
+fn getMediaFeatures(dc: *litehtml.DocumentContainer) litehtml.MediaFeatures {
+    const self = @fieldParentPtr(Container, "dc", dc);
+
+    const idx = c.SDL_GetWindowDisplayIndex(self.win);
+    var mode: c.SDL_DisplayMode = undefined;
+    _ = c.SDL_GetDisplayMode(idx, 0, &mode);
+
+    var media = litehtml.MediaFeatures{
+        .type = .screen,
+        .width = undefined,
+        .height = undefined,
+        .device_width = mode.w,
+        .device_height = mode.h,
+        .color = @intCast(c_int, c.SDL_BITSPERPIXEL(mode.format)),
+    };
+
+    c.SDL_GetWindowSize(self.win, &media.width, &media.height);
+
+    return media;
 }

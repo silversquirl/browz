@@ -51,15 +51,18 @@ pub fn main() !void {
     defer doc.deinit();
 
     mainloop: while (true) {
+        var w: c_int = undefined;
+        var h: c_int = undefined;
+        c.SDL_GetWindowSize(win, &w, &h);
+
         _ = doc.mediaChanged();
-        _ = doc.render(1024);
-        std.debug.print("{} {}\n", .{ doc.width(), doc.height() });
+        _ = doc.render(w);
 
         doc.draw(undefined, 0, 0, .{
             .x = 0,
             .y = 0,
-            .width = 1024,
-            .height = 1024,
+            .width = w,
+            .height = h,
         });
         c.SDL_RenderPresent(container.ren);
 
